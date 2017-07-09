@@ -2,7 +2,8 @@
 -- Re: Shadow RPG
 -- @ SF Software
 --------------------------------------------
-
+local ui = require "lib.ui"
+local utils = require "lib.utils"
 --------------------------------------------
 -- load @ love
 --------------------------------------------
@@ -16,7 +17,19 @@
 --------------------------------------------
 function love.load()
 	love.window.setTitle("Re: Shadow RPG")
-	image = love.graphics.newImage("images/title.jpg")
+	image = love.graphics.newImage("images/title-origin.jpg")
+	NotoSansCJK_30 = love.graphics.newFont("fonts/NotoSansCJKtc-Regular.otf", 30)
+	NotoSansCJK_60 = love.graphics.newFont("fonts/NotoSansCJKtc-Regular.otf", 60)
+	title = {
+		love.graphics.newText(NotoSansCJK_60, "Re: Shadow RPG")
+	}
+	titleBtns = {
+		love.graphics.newText(NotoSansCJK_30, "Start"),
+		love.graphics.newText(NotoSansCJK_30, "Load"),
+		love.graphics.newText(NotoSansCJK_30, "Settings"),
+		love.graphics.newText(NotoSansCJK_30, "Exit")
+	}	
+	status = "title"
 end
 
 --------------------------------------------
@@ -46,7 +59,11 @@ end
 -- things at the beginning of the function.
 --------------------------------------------
 function love.draw()
-	love.graphics.draw(image)
+	if status == "title" then
+		love.graphics.draw(image)
+		utils.drawList(title, 0.35)
+		utils.drawList(titleBtns, 0.8, 0.15)
+	end
 end
 
 --------------------------------------------
@@ -127,6 +144,7 @@ end
 -- Then, before it closes, the game can save its state.
 --------------------------------------------
 function love.quit()
+	-- Nothing to do 
 end
 
 --[[
@@ -138,7 +156,6 @@ local Gamestate = require 'lib.gamestate'
 
 local ui_test = {}
 -- ui up
-local ui = require 'lib.ui'
 function love.load()
     --tick.framerate = -1
     --tick.rate = 1 / 600
