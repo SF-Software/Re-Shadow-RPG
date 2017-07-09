@@ -1,12 +1,16 @@
-local tick = require 'lib.tick'
+love._openConsole()
+
+local print_r = require 'lib.print_r'
+--local tick = require 'lib.tick'
 local Gamestate = require 'lib.gamestate'
 
 local ui_test = {}
 -- ui up
 local ui = require 'lib.ui'
 function love.load()
-    tick.framerate = 60
-    tick.rate = 1 / 60
+    --tick.framerate = -1
+    --tick.rate = 1 / 600
+    love.graphics.setFont(love.graphics.newFont("resource/font/NotoSansCJKtc-Regular.otf", 20))
     Gamestate.registerEvents()
     Gamestate.switch(ui_test)
 end
@@ -14,7 +18,7 @@ end
 local input = {text = ""}
 
 -- all the UI is defined in love.update or functions that are called from here
-function ui_test.update(dt)
+function ui_test:update(dt)
     -- put the layout origin at position (100,100)
     -- the layout will grow down and to the right from this point
     ui.layout:reset(100, 100)
@@ -37,17 +41,17 @@ function ui_test.update(dt)
     end
 end
 
-function ui_test.draw()
+function ui_test:draw()
     -- draw the gui
     ui.draw()
 end
 
-function ui_test.textinput(t)
+function ui_test:textinput(t)
     -- forward text input to ui
     ui.textinput(t)
 end
 
-function ui_test.keypressed(key)
+function ui_test:keypressed(key)
     -- forward keypresses to ui
     ui.keypressed(key)
 end
