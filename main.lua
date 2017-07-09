@@ -6,6 +6,7 @@ local ui_test = {}
 local ui = require 'lib.ui'
 function love.load()
     tick.framerate = 60
+    tick.rate = 1 / 60
     Gamestate.registerEvents()
     Gamestate.switch(ui_test)
 end
