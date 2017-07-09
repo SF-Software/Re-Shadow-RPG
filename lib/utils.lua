@@ -12,16 +12,24 @@ module(..., package.seeall)
 -- board: percentage
 --------------------------------------------
 function drawList(list, percent, board)
-	assert(type(list) == "table" and type(percent) == "number" and percent >= 0 and percent <= 1)
+	assert(type(list) == "table" and inRange(percent, 0, 1))
 	if board then
-		assert(type(board) == "number" and board >= 0 and board <= 1)
+		assert(inRange(board, 0, 1))
 	end
 	local width = love.graphics.getWidth()
 	local height = love.graphics.getHeight() * percent
 	board = board and (width * board) or (width / (#list + 1))
 	local gap = (width - board * 2) / (#list - 1)
+	local ret = {}
 	for i = 1, #list do
-		love.graphics.draw(list[i], board - list[i]:getWidth() / 2, height - list[i]:getHeight() / 2)
+		ret[i] = {
+			x = {board - list[i]:getWidth() / 2, board + list[i]:getWidth() / 2},
+			y = {height - list[i]:getHeight() / 2, height + list[i]:getHeight() / 2}
+		}
+		love.graphics.draw(list[i], ret[i].x[1], ret[i].y[1])
 		board = board + gap
 	end
+	return ret
 end
+
+
