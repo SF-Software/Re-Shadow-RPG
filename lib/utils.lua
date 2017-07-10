@@ -10,6 +10,7 @@ module(..., package.seeall)
 -- list: contains drawable objects
 -- percent: percentage
 -- board: percentage
+-- ret: table, objects' position
 --------------------------------------------
 function drawList(list, percent, board)
 	assert(type(list) == "table" and inRange(percent, 0, 1))
@@ -18,8 +19,8 @@ function drawList(list, percent, board)
 	end
 	local width = love.graphics.getWidth()
 	local height = love.graphics.getHeight() * percent
-	board = board and(width * board) or(width /(#list + 1))
-	local gap =(width - board * 2) /(#list - 1)
+	board = board and (width * board) or (width / (#list + 1))
+	local gap = (width - board * 2) / (#list - 1)
 	local ret = {}
 	for i = 1, #list do
 		ret[i] = {
@@ -31,5 +32,3 @@ function drawList(list, percent, board)
 	end
 	return ret
 end
-
-
