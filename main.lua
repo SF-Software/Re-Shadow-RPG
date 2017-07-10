@@ -3,36 +3,43 @@
 -- @ SF Software
 --------------------------------------------
 local utils = require "lib.utils"
+local title = require "scene.title"
+local ui = require 'ui'
+
 
 --------------------------------------------
 -- scene @ main
 --------------------------------------------
 local scene = {}
+
+--------------------------------------------
+-- push @ main
+--------------------------------------------
+-- state: table
+--------------------------------------------
+function push(state)
+	assert(type(state) == "table", "Not a table.")
+	scene[#scene + 1] = state
+	state.enter()
+end
+
+--------------------------------------------
+-- pop @ main
+--------------------------------------------
+function pop()
+	assert(#scene > 1, "Not able to pop.")
+	scene[#scene] = nil
+end
+
 --------------------------------------------
 -- switch @ main
 --------------------------------------------
--- state: string or table
--- func: function (condition checker)
+-- state: table
 --------------------------------------------
-function switch(state, func)
-    if type(state) == "table" and type(func) == "function" then
-        for i = 1, #state do
-            if func(i) then
-                assert(scene[state[i]])
-                current = state[i]
-                if (scene[current].switch) then
-                    scene[current].switch()
-                end
-                break
-            end
-        end
-    elseif type(state) == "string" then
-        assert(scene[state])
-        current = state
-        if (scene[current].switch) then
-            scene[current].switch()
-        end
-    end
+function switch(state)
+	assert(type(state) == "table", "Not a table.")
+	scene[#scene] = state
+	state.enter()
 end
 
 --------------------------------------------
@@ -44,133 +51,24 @@ end
 -- ret: boolean
 --------------------------------------------
 function inRange(var, left, right)
-    assert(type(var) == "number" and type(left) == "number" and type(right) == "number")
-    return var >= left and var <= right
+	assert(type(var) == "number" and type(left) == "number" and type(right) == "number")
+	return var >= left and var <= right
 end
 
 --------------------------------------------
--- shader @ scene
+-- select @ main
 --------------------------------------------
-scene.shader = {load = function()
-        -- do sth
-    end}
+-- t: table
+-- x, y: position
+-- ret: id
 --------------------------------------------
--- title @ scene
---------------------------------------------
-scene.title = {
-    load = function()
-        titleImage = love.graphics.newImage("resource/images/title-origin.jpg")
-        title = {love.graphics.newText(NotoSansCJK_60, "Re: Shadow RPG")}
-        titleBtns = {love.graphics.newText(NotoSansCJK_30, "Start"), love.graphics.newText(NotoSansCJK_30, "Load"), love.graphics.newText(NotoSansCJK_30, "Settings"), love.graphics.newText(NotoSansCJK_30, "Exit")}
-        switch("title")
-        scene.title.focus = 1
-    end,
-    switch = function()
-        clock = 0
-    end,
-    update = function(x, y)
-        pos = scene.title.pos
-        clock = clock + 1
-        if clock > 30 then
-            clock = 30
-        end
-        if pos then
-            for i = 1, #pos do
-                if inRange(x, pos[i].x[1], pos[i].x[2]) and inRange(y, pos[i].y[1], pos[i].y[2]) then
-                    scene.title.focus = i
-                    break
-                end
-            end
-        end
-    end,
-    draw = function()
-        love.graphics.setColor(255, 255, 255, 255 / 30 * clock)
-        love.graphics.draw(titleImage)
-        utils.drawList(title, 0.35)
-        scene.title.pos = utils.drawList(titleBtns, 0.8, 0.15)
-        pos = scene.title.pos
-        focus = scene.title.focus
-        if focus and inRange(focus, 1, #pos) then
-            love.graphics.line(pos[focus].x[1], pos[focus].y[2], pos[focus].x[2], pos[focus].y[2])
-        end
-    end,
-    onMousePress = function(button, x, y)
-        pos = scene.title.pos
-        if button == 1 then
-            switch(
-                {"start", "selectData", "settings", "exitConfirm"},
-                function(id)
-                    return inRange(x, pos[id].x[1], pos[id].x[2]) and inRange(y, pos[id].y[1], pos[id].y[2])
-                end
-            )
-        end
-    end
-}
-
---------------------------------------------
--- exitConfirm @ scene
---------------------------------------------
-scene.exitConfirm = {
-    load = function()
-        confirmMsg = {love.graphics.newText(NotoSansCJK_40, "Are you going to exit?")}
-        confirmBtns = {love.graphics.newText(NotoSansCJK_30, "Yes"), love.graphics.newText(NotoSansCJK_30, "No")}
-    end,
-    switch = function()
-        clock = 20
-        scene.exitConfirm.focus = 1
-    end,
-    update = function(x, y)
-        pos = scene.exitConfirm.pos
-        clock = clock - 1
-        if clock < 5 then
-            clock = 5
-        end
-        if pos then
-            for i = 1, #pos do
-                if inRange(x, pos[i].x[1], pos[i].x[2]) and inRange(y, pos[i].y[1], pos[i].y[2]) then
-                    scene.exitConfirm.focus = i
-                    break
-                end
-            end
-        end
-    end,
-    draw = function()
-        love.graphics.setColor(255, 255, 255, 255 / 20 * clock)
-        love.graphics.draw(titleImage)
-        utils.drawList(title, 0.35)
-        pos = utils.drawList(titleBtns, 0.8, 0.15)
-        love.graphics.line(pos[4].x[1], pos[4].y[2], pos[4].x[2], pos[4].y[2])
-        love.graphics.setColor(0, 0, 0)
-        local width = love.graphics.getWidth()
-        local height = love.graphics.getHeight()
-        love.graphics.polygon("fill", width * 0.2, height * 0.3, width * 0.2, height * 0.6, width * 0.8, height * 0.6, width * 0.8, height * 0.3)
-        love.graphics.setColor(255, 255, 255)
-        utils.drawList(confirmMsg, 0.4)
-        scene.exitConfirm.pos = utils.drawList(confirmBtns, 0.5, 0.4)
-        pos = scene.exitConfirm.pos
-        focus = scene.exitConfirm.focus
-        if focus and inRange(focus, 1, #pos) then
-            love.graphics.line(pos[focus].x[1], pos[focus].y[2], pos[focus].x[2], pos[focus].y[2])
-        end
-    end,
-    onMousePress = function(button, x, y)
-        pos = scene.exitConfirm.pos
-        if button == 1 then
-            switch(
-                {"exit", "title"},
-                function(id)
-                    return inRange(x, pos[id].x[1], pos[id].x[2]) and inRange(y, pos[id].y[1], pos[id].y[2])
-                end
-            )
-        end
-    end
-}
---------------------------------------------
--- exit @ scene
---------------------------------------------
-scene.exit = {switch = function()
-        love.event.quit()
-    end}
+function select(t, x, y)
+	for i = 1, #t do
+		if inRange(x, t[i].x[1], t[i].x[2]) and inRange(y, t[i].y[1], t[i].y[2]) then
+			return i
+		end
+	end
+end
 
 --------------------------------------------
 -- load @ love
@@ -184,15 +82,11 @@ scene.exit = {switch = function()
 -- saving a lot of system resources.
 --------------------------------------------
 function love.load()
-    love.window.setTitle("Re: Shadow RPG")
-    NotoSansCJK_30 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 30)
-    NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
-    NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
-    for k, v in pairs(scene) do
-        if v.load then
-            v.load()
-        end
-    end
+	love.window.setTitle("Re: Shadow RPG")
+	NotoSansCJK_30 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 30)
+	NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
+	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
+	push(title)
 end
 
 --------------------------------------------
@@ -206,8 +100,8 @@ end
 -- usually a small value like 0.025714).
 --------------------------------------------
 function love.update()
-    local x, y = love.mouse.getPosition()
-    scene[current].update(x, y)
+	local x, y = love.mouse.getPosition()
+	scene[#scene].update(x, y)
 end
 
 --------------------------------------------
@@ -224,9 +118,9 @@ end
 -- things at the beginning of the function.
 --------------------------------------------
 function love.draw()
-    if scene[current].draw then
-        scene[current].draw()
-    end
+	if scene[#scene].draw then
+		scene[#scene].draw()
+	end
 end
 
 --------------------------------------------
@@ -241,9 +135,9 @@ end
 -- love.mousereleased.
 --------------------------------------------
 function love.mousepressed(x, y, button, istouch)
-    if scene[current].onMousePress then
-        scene[current].onMousePress(button, x, y)
-    end
+	if scene[#scene].onMousePress then
+		scene[#scene].onMousePress(button, x, y)
+	end
 end
 
 --------------------------------------------
@@ -257,9 +151,9 @@ end
 -- they aren't connected in any way.
 --------------------------------------------
 function love.mousereleased(x, y, button, istouch)
-    if scene[current].onMouseRelease then
-        scene[current].onMouseRelease(button, x, y)
-    end
+	if scene[#scene].onMouseRelease then
+		scene[#scene].onMouseRelease(button, x, y)
+	end
 end
 
 --------------------------------------------
@@ -272,9 +166,9 @@ end
 -- love.keyreleased.
 --------------------------------------------
 function love.keypressed(key)
-    if scene[current].onKeyPress then
-        scene[current].onMousePress(key)
-    end
+	if scene[#scene].onKeyPress then
+		scene[#scene].onKeyPress(key)
+	end
 end
 
 --------------------------------------------
@@ -287,9 +181,9 @@ end
 -- they aren't connected in any way.
 --------------------------------------------
 function love.keyreleased(key)
-    if scene[current].onKeyRelease then
-        scene[current].onMouseRelease(key)
-    end
+	if scene[#scene].onKeyRelease then
+		scene[#scene].onKeyRelease(key)
+	end
 end
 
 --------------------------------------------
@@ -303,9 +197,9 @@ end
 -- automatically pause the game.
 --------------------------------------------
 function love.focus(f)
-    if scene[current].onFocusChange then
-        scene[current].onFocusChange(f)
-    end
+	if scene[#scene].onFocusChange then
+		scene[#scene].onFocusChange(f)
+	end
 end
 
 --------------------------------------------
@@ -318,5 +212,5 @@ end
 -- Then, before it closes, the game can save its state.
 --------------------------------------------
 function love.quit()
-    -- Nothing to do
+	-- to do
 end

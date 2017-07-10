@@ -10,6 +10,7 @@ module(..., package.seeall)
 -- list: contains drawable objects
 -- percent: percentage
 -- board: percentage
+-- ret: table, objects' position
 --------------------------------------------
 function drawList(list, percent, board)
 	assert(type(list) == "table" and inRange(percent, 0, 1))
@@ -31,5 +32,3 @@ function drawList(list, percent, board)
 	end
 	return ret
 end
-
-
