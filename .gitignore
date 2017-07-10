@@ -6,6 +6,9 @@ luac.out
 *.zip
 *.tar.gz
 
+.luacheckrc
+.vscode
+
 # Object files
 *.o
 *.os
