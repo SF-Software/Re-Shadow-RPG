@@ -4,6 +4,8 @@
 --------------------------------------------
 local utils = require "lib.utils"
 local title = require "scene.title"
+local ui = require 'ui'
+
 
 --------------------------------------------
 -- scene @ main
@@ -31,6 +33,8 @@ end
 
 --------------------------------------------
 -- switch @ main
+--------------------------------------------
+-- state: table
 --------------------------------------------
 function switch(state)
 	assert(type(state) == "table", "Not a table.")
