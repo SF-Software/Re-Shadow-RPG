@@ -52,7 +52,7 @@ function love.load()
 	NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
 	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
 	-- push(title)
-	scene_manager.push(title)
+	scene_manager.push(map)
 end
 
 --------------------------------------------
