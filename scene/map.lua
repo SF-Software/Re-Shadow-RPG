@@ -2,30 +2,32 @@
 -- map @ scene
 -- @ SF Software
 --------------------------------------------
-module(..., package.seeall)
+local map = {}
 
 -- Map ID
 local currentMap = 0
 -- Character ID
 local characterList = {0}
 
-function enter()
+function map:enter()
 	-- load map
 	io.open("")
 end
 
-function update(x, y)
+function map:update()
 	
 end
 
-function draw()
+function map:draw()
 	
 end
 
-function onMousePress(button, x, y)
-
-end
-
-function onKeyPress(key)
+function map:mousepressed(x, y, button, istouch)
 	
 end
+
+function map:onKeyPress()
+	
+end
+
+return map 

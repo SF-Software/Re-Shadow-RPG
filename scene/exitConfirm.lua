@@ -4,14 +4,13 @@
 --------------------------------------------
 local scene_manager = require "lib.scene_manager"
 local utils = require "lib.utils"
-local exit = require "scene.exit"
 
-module(..., package.seeall)
+local exitConfirm = {}
 
 local pos = {}
 local focus = 1
 
-function enter()
+function exitConfirm:enter()
 	titleImage = love.graphics.newImage("resource/images/title-origin.jpg")
 	title = {
 		love.graphics.newText(NotoSansCJK_60, "Re: Shadow RPG")
@@ -33,15 +32,16 @@ function enter()
 	focus = 1
 end
 
-function update(x, y)
+function exitConfirm:update()
+	local x, y = love.mouse.getPosition()
 	clock = clock - 1
 	if clock < 5 then
 		clock = 5
 	end
-	focus = select(pos, x, y) or focus
+	focus = utils.select(pos, x, y) or focus
 end
 
-function draw()
+function exitConfirm:draw()
 	love.graphics.setColor(255, 255, 255, 255 / 20 * clock)
 	love.graphics.draw(titleImage)
 	utils.drawList(title, 0.35)
@@ -50,24 +50,26 @@ function draw()
 	love.graphics.setColor(0, 0, 0)
 	local width = love.graphics.getWidth()
 	local height = love.graphics.getHeight()
-	love.graphics.polygon("fill", 
-		width * 0.2, height * 0.3, width * 0.2, height * 0.6, 
-		width * 0.8, height * 0.6, width * 0.8, height * 0.3)
+	love.graphics.polygon("fill",
+	width * 0.2, height * 0.3, width * 0.2, height * 0.6,
+	width * 0.8, height * 0.6, width * 0.8, height * 0.3)
 	love.graphics.setColor(255, 255, 255)
 	utils.drawList(confirmMsg, 0.4)
 	pos = utils.drawList(confirmBtns, 0.5, 0.4)
-	if focus and inRange(focus, 1, #pos) then
+	if focus and utils.inRange(focus, 1, #pos) then
 		love.graphics.line(pos[focus].x[1], pos[focus].y[2], pos[focus].x[2], pos[focus].y[2])
 	end
 end
 
-function onMousePress(button, x, y)
+function exitConfirm:mousepressed(x, y, button, istouch)
 	if button == 1 then
-		local ret = select(pos, x, y)
+		local ret = utils.select(pos, x, y)
 		if ret == 1 then
-			scene_manager.push(exit)
+			love.event.quit()
 		elseif ret == 2 then
-			scene_manager.pop()
+			scene_manager:pop()
 		end
 	end
 end
+
+return exitConfirm 

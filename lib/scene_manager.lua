@@ -2,7 +2,11 @@
 -- Scene Manager @ Re: Shadow RPG
 -- @ SF Software
 --------------------------------------------
-module(..., package.seeall)
+local M = setmetatable({}, {__index = function(self, func)
+	return function(...)
+		(self.current() [func] or __NULL__)(...)
+	end
+end})
 
 --------------------------------------------
 -- scene @ Scene Manager
@@ -14,7 +18,7 @@ local scene = {}
 --------------------------------------------
 -- state: table
 --------------------------------------------
-function push(state)
+function M:push(state)
 	assert(type(state) == "table", "Not a table.")
 	scene[#scene + 1] = state
 	state.enter()
@@ -23,7 +27,7 @@ end
 --------------------------------------------
 -- pop @ Scene Manager
 --------------------------------------------
-function pop()
+function M:pop()
 	assert(#scene > 1, "Not able to pop.")
 	scene[#scene] = nil
 end
@@ -33,7 +37,7 @@ end
 --------------------------------------------
 -- state: table
 --------------------------------------------
-function switch(state)
+function M:switch(state)
 	assert(type(state) == "table", "Not a table.")
 	scene[#scene] = state
 	state.enter()
@@ -44,6 +48,8 @@ end
 --------------------------------------------
 -- ret: table
 --------------------------------------------
-function current()
+function M:current()
 	return scene[#scene]
 end
+
+return M 
