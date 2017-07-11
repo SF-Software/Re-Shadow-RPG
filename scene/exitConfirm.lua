@@ -2,6 +2,7 @@
 -- exitConfirm @ scene
 -- @ SF Software
 --------------------------------------------
+local scene_manager = require "lib.scene_manager"
 local utils = require "lib.utils"
 local exit = require "scene.exit"
 
@@ -64,9 +65,9 @@ function onMousePress(button, x, y)
 	if button == 1 then
 		local ret = select(pos, x, y)
 		if ret == 1 then
-			push(exit)
+			scene_manager.push(exit)
 		elseif ret == 2 then
-			pop()
+			scene_manager.pop()
 		end
 	end
 end

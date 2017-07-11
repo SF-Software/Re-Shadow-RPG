@@ -2,8 +2,10 @@
 -- title @ scene
 -- @ SF Software
 --------------------------------------------
+local scene_manager = require "lib.scene_manager"
 local utils = require "lib.utils"
 local exitConfirm = require "scene.exitConfirm"
+local map = require "scene.map"
 
 module(..., package.seeall)
 
@@ -47,10 +49,11 @@ function onMousePress(button, x, y)
 	if button == 1 then
 		local ret = select(pos, x, y)
 		if ret == 1 then
+			return scene_manager.push(map)
 		elseif ret == 2 then
 		elseif ret == 3 then
 		elseif ret == 4 then
-			return push(exitConfirm)
+			return scene_manager.push(exitConfirm)
 		end
 	end
 end

@@ -2,45 +2,10 @@
 -- Re: Shadow RPG
 -- @ SF Software
 --------------------------------------------
+local scene_manager = require "lib.scene_manager"
 local utils = require "lib.utils"
 local title = require "scene.title"
 local ui = require 'ui'
-
-
---------------------------------------------
--- scene @ main
---------------------------------------------
-local scene = {}
-
---------------------------------------------
--- push @ main
---------------------------------------------
--- state: table
---------------------------------------------
-function push(state)
-	assert(type(state) == "table", "Not a table.")
-	scene[#scene + 1] = state
-	state.enter()
-end
-
---------------------------------------------
--- pop @ main
---------------------------------------------
-function pop()
-	assert(#scene > 1, "Not able to pop.")
-	scene[#scene] = nil
-end
-
---------------------------------------------
--- switch @ main
---------------------------------------------
--- state: table
---------------------------------------------
-function switch(state)
-	assert(type(state) == "table", "Not a table.")
-	scene[#scene] = state
-	state.enter()
-end
 
 --------------------------------------------
 -- inRange @ main
@@ -62,7 +27,7 @@ end
 -- x, y: position
 -- ret: id
 --------------------------------------------
-function select(t, x, y)
+function select(t, x, y, func)
 	for i = 1, #t do
 		if inRange(x, t[i].x[1], t[i].x[2]) and inRange(y, t[i].y[1], t[i].y[2]) then
 			return i
@@ -86,7 +51,8 @@ function love.load()
 	NotoSansCJK_30 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 30)
 	NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
 	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
-	push(title)
+	-- push(title)
+	scene_manager.push(title)
 end
 
 --------------------------------------------
@@ -101,7 +67,7 @@ end
 --------------------------------------------
 function love.update()
 	local x, y = love.mouse.getPosition()
-	scene[#scene].update(x, y)
+	scene_manager.current().update(x, y)
 end
 
 --------------------------------------------
@@ -118,8 +84,8 @@ end
 -- things at the beginning of the function.
 --------------------------------------------
 function love.draw()
-	if scene[#scene].draw then
-		scene[#scene].draw()
+	if scene_manager.current().draw then
+		scene_manager.current().draw()
 	end
 end
 
@@ -135,8 +101,8 @@ end
 -- love.mousereleased.
 --------------------------------------------
 function love.mousepressed(x, y, button, istouch)
-	if scene[#scene].onMousePress then
-		scene[#scene].onMousePress(button, x, y)
+	if scene_manager.current().onMousePress then
+		scene_manager.current().onMousePress(button, x, y)
 	end
 end
 
@@ -151,8 +117,8 @@ end
 -- they aren't connected in any way.
 --------------------------------------------
 function love.mousereleased(x, y, button, istouch)
-	if scene[#scene].onMouseRelease then
-		scene[#scene].onMouseRelease(button, x, y)
+	if scene_manager.current().onMouseRelease then
+		scene_manager.current().onMouseRelease(button, x, y)
 	end
 end
 
@@ -166,8 +132,8 @@ end
 -- love.keyreleased.
 --------------------------------------------
 function love.keypressed(key)
-	if scene[#scene].onKeyPress then
-		scene[#scene].onKeyPress(key)
+	if scene_manager.current().onKeyPress then
+		scene_manager.current().onKeyPress(key)
 	end
 end
 
@@ -181,8 +147,8 @@ end
 -- they aren't connected in any way.
 --------------------------------------------
 function love.keyreleased(key)
-	if scene[#scene].onKeyRelease then
-		scene[#scene].onKeyRelease(key)
+	if scene_manager.current().onKeyRelease then
+		scene_manager.current().onKeyRelease(key)
 	end
 end
 
@@ -197,8 +163,8 @@ end
 -- automatically pause the game.
 --------------------------------------------
 function love.focus(f)
-	if scene[#scene].onFocusChange then
-		scene[#scene].onFocusChange(f)
+	if scene_manager.current().onFocusChange then
+		scene_manager.current().onFocusChange(f)
 	end
 end
 
