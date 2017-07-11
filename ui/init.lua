@@ -18,6 +18,7 @@ function ui:draw()
 end
 
 function ui:registerDraw(callback)
+	self.draw_queue = self.draw_queue or {n = 0}
 	self.draw_queue.n = self.draw_queue.n + 1
 	self.draw_queue[self.draw_queue.n] = callback
 end

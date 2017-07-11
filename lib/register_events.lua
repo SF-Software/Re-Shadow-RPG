@@ -10,7 +10,6 @@ return function(self, callback)
 	for _, f in ipairs(callbacks) do
 		registry[f] = love[f] or __NULL__
 		if self[f] then
-			
 			love[f] = function(...)
 				registry[f](...)
 				return self[f](self, ...)
