@@ -4,7 +4,7 @@
 --------------------------------------------
 local utils = require "lib.utils"
 local exitConfirm = require "scene.exitConfirm"
-
+local ui = require 'ui'
 module(..., package.seeall)
 
 local pos = {}
@@ -41,6 +41,7 @@ function draw()
 	if focus and inRange(focus, 1, #pos) then
 		love.graphics.line(pos[focus].x[1], pos[focus].y[2], pos[focus].x[2], pos[focus].y[2])
 	end
+	
 end
 
 function onMousePress(button, x, y)
@@ -53,4 +54,4 @@ function onMousePress(button, x, y)
 			return push(exitConfirm)
 		end
 	end
-end
+end 

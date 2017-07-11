@@ -1,14 +1,14 @@
 local assets_manager = require('lib.assets_manager')
-
+local BASE =(...) .. "."
 local ui = {}
-local theme_image
 local draw_list = {n = 0}
 local function __NULL__() end
 
-function ui.init(theme)
-	theme_image = assets_manager.images.theme[theme]
+function ui:init(theme)
+	self.theme_image = assets_manager.images.theme[theme]
+	self.draw_queue = {n = 0}
 end
-function ui.draw()
+function ui:draw()
 	love.graphics.push('all')
 	for i = self.draw_queue.n, 1, - 1 do
 		self.draw_queue[i]()
@@ -17,12 +17,17 @@ function ui.draw()
 	self.draw_queue.n = 0
 end
 
+
+
 local all_callbacks = {'draw', 'errhand', 'update'}
 for k in pairs(love.handlers) do
 	all_callbacks[#all_callbacks + 1] = k
 end
-
-function ui.registerEvents(callbacks)
+function ui:registerDraw(callback)
+	self.draw_queue.n = self.draw_queue.n + 1
+	self.draw_queue[self.draw_queue.n] = callback
+end
+function ui:registerEvents(callbacks)
 	local registry = {}
 	callbacks = callbacks or all_callbacks
 	for _, f in ipairs(callbacks) do
@@ -30,9 +35,12 @@ function ui.registerEvents(callbacks)
 		if ui[f] then
 			love[f] = function(...)
 				registry[f](...)
-				return ui[f](...)
+				return ui[f](self, ...)
 			end
 		end
 	end
 end
-return ui 
+
+return setmetatable({
+	window = require(BASE .. 'window')
+}, {__index = ui}) 

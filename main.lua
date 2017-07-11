@@ -86,7 +86,10 @@ function love.load()
 	NotoSansCJK_30 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 30)
 	NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
 	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
+	
 	push(title)
+	ui:init("ffixxpws")
+	ui:registerEvents()
 end
 
 --------------------------------------------
@@ -100,6 +103,7 @@ end
 -- usually a small value like 0.025714).
 --------------------------------------------
 function love.update()
+	ui:window(0, 0, 128, 128)
 	local x, y = love.mouse.getPosition()
 	scene[#scene].update(x, y)
 end
