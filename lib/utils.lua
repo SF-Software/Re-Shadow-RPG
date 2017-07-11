@@ -2,7 +2,7 @@
 -- Utils @ Re: Shadow RPG
 -- @ SF Software
 --------------------------------------------
-module(..., package.seeall)
+local utils = {}
 
 --------------------------------------------
 -- drawList @ utils
@@ -12,10 +12,10 @@ module(..., package.seeall)
 -- board: percentage
 -- ret: table, objects' position
 --------------------------------------------
-function drawList(list, percent, board)
-	assert(type(list) == "table" and inRange(percent, 0, 1))
+function utils.drawList(list, percent, board)
+	assert(type(list) == "table" and utils.inRange(percent, 0, 1))
 	if board then
-		assert(inRange(board, 0, 1))
+		assert(utils.inRange(board, 0, 1))
 	end
 	local width = love.graphics.getWidth()
 	local height = love.graphics.getHeight() * percent
@@ -32,3 +32,34 @@ function drawList(list, percent, board)
 	end
 	return ret
 end
+
+
+--------------------------------------------
+-- inRange @ main
+--------------------------------------------
+-- var: number
+-- left: number
+-- right: number
+-- ret: boolean
+--------------------------------------------
+function utils.inRange(var, left, right)
+	assert(type(var) == "number" and type(left) == "number" and type(right) == "number")
+	return var >= left and var <= right
+end
+
+--------------------------------------------
+-- select @ main
+--------------------------------------------
+-- t: table
+-- x, y: position
+-- ret: id
+--------------------------------------------
+function utils.select(t, x, y, func)
+	for i = 1, #t do
+		if utils.inRange(x, t[i].x[1], t[i].x[2]) and utils.inRange(y, t[i].y[1], t[i].y[2]) then
+			return i
+		end
+	end
+end
+
+return utils 
