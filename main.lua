@@ -12,7 +12,6 @@ local registerEvents = require 'lib.register_events'
 -- load @ love
 --------------------------------------------
 function love.load()
-	love.window.setTitle("Re: Shadow RPG")
 	NotoSansCJK_30 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 30)
 	NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
 	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)

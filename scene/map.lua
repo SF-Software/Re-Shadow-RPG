@@ -17,7 +17,7 @@ local clock = 0
 
 function map:enter()
 	-- load map
-	local f = io.open(string.format("map/%s.tmx", currentMap))
+	local f = io.open(string.format("resource/map/%s.tmx", currentMap))
 	local res = f:read("*a")
 	f:close()
 	-- step 0: load info
@@ -52,18 +52,17 @@ function map:enter()
 		assert(tilecount and columns, "Invaild tileset file.")
 		tilecount = tonumber(tilecount)
 		columns = tonumber(columns)
-		local tileData = love.image.newImageData(string.format("resource/tiles/%s", source))
 		tileset[#tileset + 1] = {
-			source = {},
+			source = love.graphics.newImage(string.format("resource/tiles/%s", source)),
+			quad = {},
 			first = tonumber(first),
 			alpha = tonumber(alpha or 1)
 		}
 		for i = 1, tilecount do
-			local temp = love.image.newImageData(info.tileWidth, info.tileHeight)
 			local sx = (i - 1) % columns * info.tileWidth
 			local sy = math.floor((i - 1) / columns) * info.tileHeight
-			temp:paste(tileData, 0, 0, sx, sy, info.tileWidth, info.tileHeight)
-			tileset[#tileset].source[i] = love.graphics.newImage(temp)
+			tileset[#tileset].quad[i] = love.graphics.newQuad(sx, sy, info.tileWidth, info.tileHeight,
+				tileset[#tileset].source:getDimensions())
 		end
 	end
 	-- step 2: load layers
@@ -113,7 +112,7 @@ function map:draw()
 			for col = 1, #layer[i][line] do
 				local cur = layer[i][line][col]
 				if cur then
-					love.graphics.draw(tileset[cur.tile].source[cur.id], 
+					love.graphics.draw(tileset[cur.tile].source, tileset[cur.tile].quad[cur.id], 
 						(col - 1) * info.tileWidth, (line - 1) * info.tileHeight)
 				end
 			end
