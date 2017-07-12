@@ -1,4 +1,5 @@
 function __NULL__() end
+
 function love.conf(t)
 	t.window.title = "Re:Shadow RPG"
 	t.window.width = 800
