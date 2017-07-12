@@ -8,7 +8,7 @@ local map = {}
 
 -- Map ID
 local currentMap = "000-debug"
-local currentPos = {5, 5}
+local currentPos = {6, 6}
 local focusPos = {0, 0}
 -- Character ID (todo: class data?)
 local characterList = {
@@ -19,6 +19,12 @@ local characterList = {
 		status = 2
 	}
 }
+local movement = {
+	down = {1, 0, 0.1},
+	left = {2, -0.1, 0},
+	right = {3, 0.1, 0},
+ 	up = {4, 0, -0.1}
+}
 
 local info = {}
 local tileset = {}
@@ -28,6 +34,7 @@ local character = {
 }
 
 local clock = 0
+local tick = 0
 
 function map:enter()
 	-- load map
@@ -161,11 +168,33 @@ function map:enter()
 		focusPos[2] = utils.setRange(currentPos[1], 1 + half, info.height - half)
 	end
 	clock = 0
+	tick = 0
 end
 
 function map:update()
+	tick = tick + 1
 	if clock < 30 then
 		clock = clock + 1
+	end
+	if tick > 2 then
+		tick = 0
+		local moving = false
+		for k, v in pairs(movement) do
+			if love.keyboard.isDown(k) then
+				characterList[0].faceto = v[1]		
+				characterList[0].status = characterList[0].status + 1
+				if characterList[0].status > #character[0][1] then
+					characterList[0].status = 2
+				end
+				characterList[0].position[1] = utils.setRange(characterList[0].position[1] + v[2], 1, info.width)
+				characterList[0].position[2] = utils.setRange(characterList[0].position[2] + v[3], 1, info.height)
+				moving = true
+				break
+			end
+		end
+		if not moving then
+			characterList[0].status = 2
+		end
 	end
 end
 
@@ -203,7 +232,7 @@ function map:mousepressed(x, y, button, istouch)
 end
 
 function map:keypressed(key)
-	
+
 end
 
 return map 

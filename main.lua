@@ -17,7 +17,6 @@ function love.load()
 	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
 	ui:init()
 	
-	
 	registerEvents(scene_manager)
 	registerEvents(ui)
 	scene_manager:push(title)
@@ -27,7 +26,9 @@ end
 -- update @ love
 --------------------------------------------
 function love.update()
+--[[
 	ui:window(0, 0, 200, 100)
 	ui:window(0, 100, 200, 500)
 	ui:window(200, 0, 600, 600)
+]]
 end 
