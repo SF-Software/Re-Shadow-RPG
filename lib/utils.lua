@@ -35,7 +35,7 @@ end
 
 
 --------------------------------------------
--- inRange @ main
+-- inRange @ utils
 --------------------------------------------
 -- var: number
 -- left: number
@@ -48,7 +48,26 @@ function utils.inRange(var, left, right)
 end
 
 --------------------------------------------
--- select @ main
+-- setRange @ utils
+--------------------------------------------
+-- var: number
+-- left: number
+-- right: number
+-- ret: number
+--------------------------------------------
+function utils.setRange(var, left, right)
+	assert(type(var) == "number" and type(left) == "number" and type(right) == "number")
+	if var < left then
+		return left
+	elseif var > right then
+		return right
+	else
+		return var
+	end
+end
+
+--------------------------------------------
+-- select @ utils
 --------------------------------------------
 -- t: table
 -- x, y: position
