@@ -8,22 +8,27 @@ local map = {}
 
 -- Map ID
 local currentMap = "000-debug"
-local currentPos = {6, 6}
 local focusPos = {0, 0}
 -- Character ID (todo: class data?)
 local characterList = {
 	[0] = {
-		position = currentPos,
+		position = {6, 6},
 		-- down, left, right, up
 		faceto = 1,
 		status = 2
 	}
 }
+
+local speed = 2 -- blocks per second
+local frequency = 6 -- frames per second
+local step = speed / 60
+local scrollGap = 5
+
 local movement = {
-	down = {1, 0, 0.1},
-	left = {2, -0.1, 0},
-	right = {3, 0.1, 0},
- 	up = {4, 0, -0.1}
+	down = {1, 0, step},
+	left = {2, -step, 0},
+	right = {3, step, 0},
+ 	up = {4, 0, -step}
 }
 
 local info = {}
@@ -34,7 +39,26 @@ local character = {
 }
 
 local clock = 0
-local tick = 0
+local lastFrame = 0
+
+function map:limitFocus()
+	local width, height = love.graphics.getDimensions()
+	width = math.floor(width / info.tileWidth + 0.5)
+	height = math.floor(height / info.tileHeight + 0.5)
+	if info.width <= width then
+		focusPos[1] = math.floor(info.width / 2)
+	else
+		local half = math.floor(width / 2)	
+		focusPos[1] = utils.setRange(math.floor(characterList[0].position[1]), 1 + half, info.width - half)
+	end
+	if info.height <= height then
+		focusPos[2] = math.floor(info.height / 2)
+	else
+		local half = math.floor(height / 2)
+		focusPos[2] = utils.setRange(math.floor(characterList[0].position[2]), 1 + half, info.height - half)
+	end
+	print(unpack(focusPos))
+end
 
 function map:enter()
 	-- load map
@@ -152,52 +176,71 @@ function map:enter()
 	end
 	
 	-- init
-	local width, height = love.graphics.getDimensions()
-	width = math.floor(width / info.tileWidth + 0.5)
-	height = math.floor(height / info.tileHeight + 0.5)
-	if info.width <= width then
-		focusPos[1] = math.floor(info.width / 2)
-	else
-		local half = math.floor(width / 2)	
-		focusPos[1] = utils.setRange(currentPos[1], 1 + half, info.width - half)
-	end
-	if info.height <= height then
-		focusPos[2] = math.floor(info.height / 2)
-	else
-		local half = math.floor(height / 2)
-		focusPos[2] = utils.setRange(currentPos[1], 1 + half, info.height - half)
-	end
+	map:limitFocus()
 	clock = 0
-	tick = 0
 end
-
+-- 需求:
+-- 1) 实现人物的行走(done)
+-- 2) 确定当前的focusPos
+--    规则: 朝某个方向移动后, 若进入到了距离窗口边界5格内, 且该方向地图边界尚未被绘制, 则focusPos向该方向同步移动.
+--          除此以外的任何时点, focusPos不移动.
 function map:update()
-	tick = tick + 1
 	if clock < 30 then
 		clock = clock + 1
 	end
-	if tick > 2 then
-		tick = 0
-		local moving = false
-		for k, v in pairs(movement) do
-			if love.keyboard.isDown(k) then
-				characterList[0].faceto = v[1]		
+	local moving = false
+	for k, v in pairs(movement) do
+		if love.keyboard.isDown(k) then
+			characterList[0].faceto = v[1]
+		
+			local width, height = love.graphics.getDimensions()
+			width = math.floor(width / info.tileWidth + 0.5)
+			height = math.floor(height / info.tileHeight + 0.5)
+			local halfWidth, halfHeight = math.floor(width / 2), math.floor(height / 2)
+			local lineLeft, lineRight = focusPos[2] - halfHeight, focusPos[2] - halfHeight + height
+			local colLeft, colRight = focusPos[1] - halfWidth, focusPos[1] - halfWidth + width
+
+			characterList[0].position[1] = utils.setRange(characterList[0].position[1] + v[2], 1, info.width)
+			characterList[0].position[2] = utils.setRange(characterList[0].position[2] + v[3], 1, info.height)
+			
+			local scrolled = false
+			if (characterList[0].position[1] - colLeft) < scrollGap then
+				focusPos[1] = focusPos[1] - 1
+				scrolled = true
+			elseif (colRight - characterList[0].position[1]) < scrollGap then
+				focusPos[1] = focusPos[1] + 1
+				scrolled = true
+			end
+			if (characterList[0].position[2] - lineLeft) < scrollGap then
+				focusPos[2] = focusPos[2] - 1
+				scrolled = true
+			elseif (lineRight - characterList[0].position[2]) < scrollGap then
+				focusPos[2] = focusPos[2] + 1
+				scrolled = true
+			end
+			
+			if scrolled then
+				map:limitFocus()
+			end
+			
+			if os.clock() - lastFrame > 1 / frequency then	
 				characterList[0].status = characterList[0].status + 1
 				if characterList[0].status > #character[0][1] then
-					characterList[0].status = 2
+					characterList[0].status = 1
 				end
-				characterList[0].position[1] = utils.setRange(characterList[0].position[1] + v[2], 1, info.width)
-				characterList[0].position[2] = utils.setRange(characterList[0].position[2] + v[3], 1, info.height)
-				moving = true
-				break
+				lastFrame = os.clock()
 			end
-		end
-		if not moving then
-			characterList[0].status = 2
+			moving = true
+			break
 		end
 	end
+	if not moving then
+		characterList[0].status = 2
+	end
 end
-
+-- 需求:
+-- 1) 以给定的focusPos为地图中心点, 将其对准窗口中心点进行地图绘制.
+-- 2) 使得focusPos可以为小数.
 function map:draw()
 	love.graphics.setColor(255, 255, 255, 255 / 30 * clock)
 	local width, height = love.graphics.getDimensions()
