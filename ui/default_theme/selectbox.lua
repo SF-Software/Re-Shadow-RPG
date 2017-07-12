@@ -30,6 +30,12 @@ end
 function selectbox:draw(items, row, col, width, height, index)
 	local item_width =(width -(col - 1) * self.hori_space) / col
 	local item_height = self.font:getHeight()
+	
+	for r = 0, row - 1 do
+		for c = 0, col - 1 do
+			
+		end
+	end
 end
 
 return selectbox 

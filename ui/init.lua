@@ -1,20 +1,23 @@
 
 local BASE =(...) .. "."
-local ui = {}
+local ui = {draw_queue = {n = 0}}
 local draw_list = {n = 0}
 
-
+ui.clean = {}
+function ui.clean:update()
+	print(1)	
+	ui.draw_queue.n = 0
+end
 function ui:init(theme)
 	self.theme = theme or require(BASE .. 'default_theme')
-	self.draw_queue = {n = 0}
 end
 function ui:draw()
+	print(2)
 	love.graphics.push('all')
 	for i = self.draw_queue.n, 1, - 1 do
 		self.draw_queue[i]()
 	end
 	love.graphics.pop()
-	self.draw_queue.n = 0
 end
 
 function ui:registerDraw(callback, x, y, w, h)
@@ -32,8 +35,6 @@ function ui:registerDraw(callback, x, y, w, h)
 		
 	end
 end
-
-
 function ui:with_theme(theme, key, callback)
 	if not callback then
 		callback = key
