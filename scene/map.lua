@@ -8,16 +8,33 @@ local map = {}
 
 -- Map ID
 local currentMap = "000-debug"
-local currentPos = {5, 5}
-local focusPos = {0, 0}
+local focusPos = {
+	x = 0, 
+	y = 0
+}
 -- Character ID (todo: class data?)
 local characterList = {
 	[0] = {
-		position = currentPos,
+		position = {
+			x = 5,
+			y = 5
+		},
 		-- down, left, right, up
 		faceto = 1,
 		status = 2
 	}
+}
+
+local speed = 2 -- blocks per second
+local frequency = 6 -- frames per second
+local step = speed / 60
+local scrollGap = 5
+
+local movement = {
+	down = {1, 0, step},
+	left = {2, -step, 0},
+	right = {3, step, 0},
+ 	up = {4, 0, -step}
 }
 
 local info = {}
@@ -28,6 +45,7 @@ local character = {
 }
 
 local clock = 0
+local lastFrame = 0
 
 function map:enter()
 	-- load map
@@ -145,43 +163,94 @@ function map:enter()
 	end
 	
 	-- init
+	-- 坐标编号: 从(0,0)到(29,19)
+	-- 总共有30x20个方块,地图中心是(14.5, 9.5)
+	-- 屏幕可以容纳25x18.75个方块.
+	
 	local width, height = love.graphics.getDimensions()
-	width = math.floor(width / info.tileWidth + 0.5)
-	height = math.floor(height / info.tileHeight + 0.5)
+	width = width / info.tileWidth
+	height = height / info.tileHeight
 	if info.width <= width then
-		focusPos[1] = math.floor(info.width / 2)
+		focusPos.x = (info.width - 1) / 2
 	else
-		local half = math.floor(width / 2)	
-		focusPos[1] = utils.setRange(currentPos[1], 1 + half, info.width - half)
+		local half = width / 2
+		focusPos.x = utils.setRange(characterList[0].position.x, half, info.width - half - 1)
 	end
 	if info.height <= height then
-		focusPos[2] = math.floor(info.height / 2)
+		focusPos.y = (info.height - 1) / 2
 	else
-		local half = math.floor(height / 2)
-		focusPos[2] = utils.setRange(currentPos[1], 1 + half, info.height - half)
+		local half = height / 2
+		focusPos.y = utils.setRange(characterList[0].position.y, half, info.height - half - 1)
 	end
+	print(focusPos.x, focusPos.y)
 	clock = 0
 end
-
+-- 需求:
+-- 1) 实现人物的行走(done)
+-- 2) 确定当前的focusPos
+--    规则: 朝某个方向移动后, 若进入到了距离窗口边界5格内, 且该方向地图边界尚未被绘制, 则focusPos向该方向同步移动.
+--          除此以外的任何时点, focusPos不移动.
 function map:update()
 	if clock < 30 then
 		clock = clock + 1
 	end
-end
+	local moving = false
+	for k, v in pairs(movement) do
+		if love.keyboard.isDown(k) then
+			characterList[0].faceto = v[1]
+		
+			local width, height = love.graphics.getDimensions()
+			width = width / info.tileWidth
+			height = height / info.tileHeight
+			local halfWidth, halfHeight = width / 2, height / 2
+			local lineLeft, lineRight = focusPos.y - halfHeight, focusPos.y - halfHeight + height
+			local colLeft, colRight = focusPos.x - halfWidth, focusPos.x - halfWidth + width
 
+			characterList[0].position.x = utils.setRange(characterList[0].position.x + v[2], 0, info.width - 1)
+			characterList[0].position.y = utils.setRange(characterList[0].position.y + v[3], 0, info.height - 1)
+			
+			if (characterList[0].position.x - colLeft) < scrollGap and (colLeft - step) >= 0 then
+				focusPos.x = focusPos.x - step
+			elseif (colRight - characterList[0].position.x) < scrollGap and (colRight + step) <= info.width then
+				focusPos.x = focusPos.x + step
+			elseif (characterList[0].position.y - lineLeft) < scrollGap and (lineLeft - step) >= 0 then
+				focusPos.y = focusPos.y - step
+			elseif (lineRight - characterList[0].position.y) < scrollGap and (lineRight + step) <= info.height then
+				focusPos.y = focusPos.y + step
+			end
+			
+			if os.clock() - lastFrame > 1 / frequency then	
+				characterList[0].status = characterList[0].status + 1
+				if characterList[0].status > #character[0][1] then
+					characterList[0].status = 1
+				end
+				lastFrame = os.clock()
+			end
+			
+			moving = true
+			break
+		end
+	end
+	if not moving then
+		characterList[0].status = 2
+	end
+end
+-- 需求:
+-- 1) 以给定的focusPos为地图中心坐标, 将其对准窗口中心进行地图绘制.
+-- 2) 使得focusPos可以为小数.
 function map:draw()
 	love.graphics.setColor(255, 255, 255, 255 / 30 * clock)
 	local width, height = love.graphics.getDimensions()
-	width = math.floor(width / info.tileWidth + 0.5)
-	height = math.floor(height / info.tileHeight + 0.5)
-	local halfWidth, halfHeight = math.floor(width / 2), math.floor(height / 2)
-	local lineLeft, lineRight = focusPos[2] - halfHeight, focusPos[2] - halfHeight + height
-	local colLeft, colRight = focusPos[1] - halfWidth, focusPos[1] - halfWidth + width
+	width = width / info.tileWidth
+	height = height / info.tileHeight
+	local halfWidth, halfHeight = width / 2, height / 2
+	local lineLeft, lineRight = focusPos.y - halfHeight, focusPos.y - halfHeight + height
+	local colLeft, colRight = focusPos.x - halfWidth, focusPos.x - halfWidth + width
 	for i = 1, #layer do
 		for line = lineLeft, lineRight do
 			for col = colLeft, colRight do
-				if layer[i][line] and layer[i][line][col] then
-					local cur = layer[i][line][col]
+				if layer[i][math.floor(line) + 1] and layer[i][math.floor(line) + 1][math.floor(col) + 1] then
+					local cur = layer[i][math.floor(line) + 1][math.floor(col) + 1]
 					love.graphics.draw(tileset[cur.tile].source, tileset[cur.tile].quad[cur.id], 
 						(col - colLeft) * info.tileWidth, (line - lineLeft) * info.tileHeight)
 				end
@@ -191,8 +260,8 @@ function map:draw()
 			for k, v in pairs(characterList) do
 				love.graphics.draw(character.source[character[k].source].source, 
 					character[k][v.faceto][v.status], 
-					(v.position[1] - colLeft) * info.tileWidth, 
-					(v.position[2] - lineLeft + 1) * info.tileHeight - character.source[character[k].source].height)
+					(v.position.x - colLeft) * info.tileWidth, 
+					(v.position.y - lineLeft + 1) * info.tileHeight - character.source[character[k].source].height)
 			end
 		end
 	end
@@ -203,7 +272,7 @@ function map:mousepressed(x, y, button, istouch)
 end
 
 function map:keypressed(key)
-	
+
 end
 
 return map 
