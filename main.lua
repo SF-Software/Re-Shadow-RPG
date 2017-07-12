@@ -15,7 +15,7 @@ function love.load()
 	NotoSansCJK_30 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 30)
 	NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
 	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
-	ui:init("ffixxpws")
+	ui:init()
 	
 	
 	registerEvents(scene_manager)

@@ -1,11 +1,11 @@
-local assets_manager = require('lib.assets_manager')
+
 local BASE =(...) .. "."
 local ui = {}
 local draw_list = {n = 0}
 
 
 function ui:init(theme)
-	self.theme_image = assets_manager.images.theme[theme]
+	self.theme = theme or require(BASE .. 'default_theme')
 	self.draw_queue = {n = 0}
 end
 function ui:draw()
@@ -17,29 +17,37 @@ function ui:draw()
 	self.draw_queue.n = 0
 end
 
-function ui:registerDraw(callback)
+function ui:registerDraw(callback, x, y, w, h)
 	self.draw_queue = self.draw_queue or {n = 0}
 	self.draw_queue.n = self.draw_queue.n + 1
-	self.draw_queue[self.draw_queue.n] = callback
-end
-
-local all_callbacks = {'draw', 'errhand', 'update'}
-for k in pairs(love.handlers) do
-	all_callbacks[#all_callbacks + 1] = k
-end
-
-function ui:registerEvents(callbacks)
-	local registry = {}
-	callbacks = callbacks or all_callbacks
-	for _, f in ipairs(callbacks) do
-		registry[f] = love[f] or __NULL__
-		if ui[f] then
-			love[f] = function(...)
-				registry[f](...)
-				return ui[f](self, ...)
-			end
+	self.draw_queue[self.draw_queue.n] = function()
+		love.graphics.push("all")
+		
+		if w and h then
+			love.graphics.setScissor(x, y, w, h)
 		end
+		love.graphics.translate(x, y)
+		callback()
+		love.graphics.pop()
+		
 	end
+end
+
+
+function ui:with_theme(theme, key, callback)
+	if not callback then
+		callback = key
+		local old_t = self.theme
+		self.theme = theme
+		callback(self)
+		self.theme = old_t
+	else
+		local old_t = self.theme[key]
+		self.theme[key] = theme
+		callback(self)
+		self.theme[key] = old_t
+	end
+	
 end
 
 return setmetatable({
