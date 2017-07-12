@@ -8,6 +8,9 @@
 
 ### CG
 ### Character
+* [ぴぽや倉庫](http://piposozai.blog76.fc2.com/)
+* [なにかしらツク～ル](http://nanikasiratkool.web.fc2.com/)
+
 ### Background
 ### User Interface
 #### Buttons

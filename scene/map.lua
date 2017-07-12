@@ -2,16 +2,30 @@
 -- map @ scene
 -- @ SF Software
 --------------------------------------------
+local utils = require "lib.utils"
+
 local map = {}
 
 -- Map ID
 local currentMap = "000-debug"
+local currentPos = {5, 5}
+local focusPos = {0, 0}
 -- Character ID (todo: class data?)
-local characterList = {0}
+local characterList = {
+	[0] = {
+		position = currentPos,
+		-- down, left, right, up
+		faceto = 1,
+		status = 2
+	}
+}
 
 local info = {}
 local tileset = {}
 local layer = {}
+local character = {
+	source = {}
+}
 
 local clock = 0
 
@@ -38,7 +52,7 @@ function map:enter()
 	while res:find(tilesetPt) do
 		local s = res:match(tilesetPt)
 		res = res:gsub(tilesetPt, "", 1)
-		local source = s:match([[source="%.%./resource/tiles/(.-%.tsx)"]])
+		local source = s:match([[source="%.%./tiles/(.-%.tsx)"]])
 		local first = s:match([[firstgid="(%d+)"]])
 		local alpha = s:match([[opacity="([%d%.]+)"]])
 		assert(source and first, "Invaild tileset tag.")
@@ -96,6 +110,56 @@ function map:enter()
 			end
 		end
 	end
+	
+	-- load characters
+	local index = dofile("resource/characters/index.des")
+	assert(index, "Character index not found.")
+	for i = 1, #index do
+		local t = dofile(string.format("resource/characters/%s", index[i]))
+		assert(t, string.format("Character description <%s> not found.", index[i]))
+		table.insert(character.source, {
+			width = t.width,
+			height = t.height,
+			columns = t.columns,
+			source = love.graphics.newImage(string.format("resource/characters/%s", t.source))
+		})
+		for k, v in pairs(t) do
+			if type(k) == "number" then
+				character[k] = {
+					source = #character.source
+				}
+				for i = 1, 4 do
+					character[k][i] = {}
+					for c = 1, t.columns do
+						local sx = (v.col + c - 2) * t.width
+						local sy = (v.line + i - 2) * t.height
+						character[k][i][c] = love.graphics.newQuad(sx, sy, t.width, t.height,
+							character.source[#character.source].source:getDimensions())
+					end
+					if t.columns == 3 then
+						character[k][i][4] = character[k][i][2]
+					end
+				end
+			end
+		end
+	end
+	
+	-- init
+	local width, height = love.graphics.getDimensions()
+	width = math.floor(width / info.tileWidth + 0.5)
+	height = math.floor(height / info.tileHeight + 0.5)
+	if info.width <= width then
+		focusPos[1] = math.floor(info.width / 2)
+	else
+		local half = math.floor(width / 2)	
+		focusPos[1] = utils.setRange(currentPos[1], 1 + half, info.width - half)
+	end
+	if info.height <= height then
+		focusPos[2] = math.floor(info.height / 2)
+	else
+		local half = math.floor(height / 2)
+		focusPos[2] = utils.setRange(currentPos[1], 1 + half, info.height - half)
+	end
 	clock = 0
 end
 
@@ -107,14 +171,28 @@ end
 
 function map:draw()
 	love.graphics.setColor(255, 255, 255, 255 / 30 * clock)
+	local width, height = love.graphics.getDimensions()
+	width = math.floor(width / info.tileWidth + 0.5)
+	height = math.floor(height / info.tileHeight + 0.5)
+	local halfWidth, halfHeight = math.floor(width / 2), math.floor(height / 2)
+	local lineLeft, lineRight = focusPos[2] - halfHeight, focusPos[2] - halfHeight + height
+	local colLeft, colRight = focusPos[1] - halfWidth, focusPos[1] - halfWidth + width
 	for i = 1, #layer do
-		for line = 1, #layer[i] do
-			for col = 1, #layer[i][line] do
-				local cur = layer[i][line][col]
-				if cur then
+		for line = lineLeft, lineRight do
+			for col = colLeft, colRight do
+				if layer[i][line] and layer[i][line][col] then
+					local cur = layer[i][line][col]
 					love.graphics.draw(tileset[cur.tile].source, tileset[cur.tile].quad[cur.id], 
-						(col - 1) * info.tileWidth, (line - 1) * info.tileHeight)
+						(col - colLeft) * info.tileWidth, (line - lineLeft) * info.tileHeight)
 				end
+			end
+		end
+		if i == 2 then
+			for k, v in pairs(characterList) do
+				love.graphics.draw(character.source[character[k].source].source, 
+					character[k][v.faceto][v.status], 
+					(v.position[1] - colLeft) * info.tileWidth, 
+					(v.position[2] - lineLeft + 1) * info.tileHeight - character.source[character[k].source].height)
 			end
 		end
 	end
