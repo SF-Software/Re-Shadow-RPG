@@ -4,15 +4,13 @@ local ui = {draw_queue = {n = 0}}
 local draw_list = {n = 0}
 
 ui.clean = {}
-function ui.clean:update()
-	print(1)	
+function ui.clean:update()	
 	ui.draw_queue.n = 0
 end
 function ui:init(theme)
 	self.theme = theme or require(BASE .. 'default_theme')
 end
 function ui:draw()
-	print(2)
 	love.graphics.push('all')
 	for i = self.draw_queue.n, 1, - 1 do
 		self.draw_queue[i]()
