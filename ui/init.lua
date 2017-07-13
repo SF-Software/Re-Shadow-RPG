@@ -51,5 +51,5 @@ end
 
 return setmetatable({
 	window = require(BASE .. 'window'),
-	selectbox = require(BASE .. 'selectbox')
+	selection = require(BASE .. 'selection')
 }, {__index = ui}) 

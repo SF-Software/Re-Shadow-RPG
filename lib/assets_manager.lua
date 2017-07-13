@@ -12,8 +12,12 @@ end
 local la, lf, lg = love.audio, love.filesystem, love.graphics
 
 local function makeFont(path)
+	local cache = {}
 	return function(size)
-		return lg.newFont(path, size)
+		if not cache[size] then cache[size] =
+			lg.newFont(path, size)
+		end
+		return cache[size]
 	end
 end
 

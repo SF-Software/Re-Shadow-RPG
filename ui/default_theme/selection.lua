@@ -1,8 +1,8 @@
 local assets_manager = require('lib.assets_manager')
 
-local selectbox = {
+local selection = {
 	hori_space = 3,
-	vert_space = 5,
+	vert_space = 0,
 	font = assets_manager.fonts["NotoSansCJKtc-Regular"],
 	font_size = 20
 }
@@ -36,34 +36,32 @@ local function disabled_active(self, x, y, text, w)
 end
 
 
-function selectbox:draw(items, row, col, item_width, width, height, index)
+function selection:draw(items, row, col, item_width, width, height, index)
 	local item_height = self.font(self.font_size):getHeight()
 	local index_r = math.floor(index / col)
 	local index_c = index % col
 	local iw = item_width + self.hori_space
 	local ih = item_height + self.vert_space
-	local ixs, iys = index_c * iw - self.hori_space, index_r * ih - self.vert_space
+	local ixs, iys = index_c * iw, index_r * ih
 	local ix, iy = ixs, iys
-	
-	
 	if ix + item_width > width then
-		ix = math.max(self.hori_space, width - item_width + self.hori_space)
+		ix = math.max(0, width - item_width)
 	end
-	if iy + item_height > height then
-		iy = math.max(self.vert_space, height - item_height + self.vert_space)
+	if iy + item_height > height then		
+		iy = math.max(0, height - item_height)
 	end
+	
 	local px = ix - ixs
 	local py = iy - iys
-	print(px, py)
 	for r = 0, row - 1 do
 		for c = 0, col - 1 do
-			if index == r * col + c + 1 then
-				active(self, px + c * iw - self.hori_space, py + r * ih - self.vert_space, items[r * col + c + 1])
+			if index == r * col + c then
+				active(self, px + c * iw, py + r * ih, items[r * col + c + 1])
 			else
-				inactive(self, px + c * iw - self.hori_space, py + r * ih - self.vert_space, items[r * col + c + 1])
+				inactive(self, px + c * iw, py + r * ih, items[r * col + c + 1])
 			end
 		end
 	end
 end
 
-return selectbox 
+return selection 

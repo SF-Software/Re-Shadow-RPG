@@ -2,7 +2,6 @@ local BASE =(...) .. "."
 
 
 return {
-	
-	selectbox = require(BASE .. 'selectbox'),
+	selection = require(BASE .. 'selection'),
 	window = require(BASE .. 'window')
 } 
