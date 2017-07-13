@@ -22,9 +22,9 @@ function love.load()
 	registerEvents(ui.clean)
 	registerEvents(scene_manager)
 	registerEvents(ui)
+	registerEvents({draw = function()
+		love.graphics.print("Current FPS: " .. tostring(love.timer.getFPS()), 10, 10)
+	end})
 	
 	scene_manager:push(title)
 end
-function love.draw()
-	love.graphics.print("Current FPS: " .. tostring(love.timer.getFPS()), 10, 10)
-end 

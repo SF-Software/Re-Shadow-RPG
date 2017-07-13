@@ -11,9 +11,16 @@ for i = 1, 35 do
 end
 function ui_test:update()
 	
-	ui:selection(t,	50, 50, 186, 100, 60, 7, 5, {index = index})
+	ui:selection(50, 50, 186, 90, {
+		items = t,
+		item_height = 30,
+		item_width = 60,
+		columns = 5,
+		rows = 7,
+		cursor = {index = index}
+	})
 	--ui:selectbox({"items", "test2", "test3", "test4", "test5", "test6", "test7"}, 200, 5, 190, 90, 80, 7, 1, {index = 2})
-	ui:window(50, 50, 190, 100)
+	ui:window(48, 48, 194, 104)
 	--	ui:window(0, 100, 200, 500)
 	--	ui:window(200, 0, 600, 600)
 	if count > 10 then
