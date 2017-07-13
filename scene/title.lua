@@ -6,8 +6,7 @@ local scene_manager = require "lib.scene_manager"
 local utils = require "lib.utils"
 local exitConfirm = require "scene.exitConfirm"
 local map = require "scene.map"
-local utils = require 'lib.utils'
-
+local ui_test = require 'scene.ui_test'
 local title = {}
 
 local pos = {}
@@ -21,7 +20,7 @@ function title:enter()
 	}
 	titleBtns = {
 		love.graphics.newText(NotoSansCJK_30, "Start"),
-		love.graphics.newText(NotoSansCJK_30, "Load"),
+		love.graphics.newText(NotoSansCJK_30, "UI Test"),
 		love.graphics.newText(NotoSansCJK_30, "Settings"),
 		love.graphics.newText(NotoSansCJK_30, "Exit")
 	}
@@ -54,6 +53,7 @@ function title:mousepressed(x, y, button, istouch)
 		if ret == 1 then
 			return scene_manager:push(map)
 		elseif ret == 2 then
+			return scene_manager:push(ui_test)
 		elseif ret == 3 then
 		elseif ret == 4 then
 			return scene_manager:push(exitConfirm)
