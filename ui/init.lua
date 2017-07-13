@@ -1,7 +1,7 @@
 
 local BASE =(...) .. "."
 local ui = {draw_queue = {n = 0}}
-local draw_list = {n = 0}
+
 
 ui.clean = {}
 function ui.clean:update()	
@@ -50,5 +50,6 @@ function ui:with_theme(theme, key, callback)
 end
 
 return setmetatable({
-	window = require(BASE .. 'window')
+	window = require(BASE .. 'window'),
+	selectbox = require(BASE .. 'selectbox')
 }, {__index = ui}) 

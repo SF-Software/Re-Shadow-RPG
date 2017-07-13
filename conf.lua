@@ -1,5 +1,5 @@
 function __NULL__() end
-
+require('lib.print_r')
 function love.conf(t)
 	t.window.title = "Re: Shadow RPG"
 	t.window.width = 800
