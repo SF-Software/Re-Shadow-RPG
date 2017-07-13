@@ -32,9 +32,9 @@ local scrollGap = 5
 
 local movement = {
 	down = {1, 0, step},
-	left = {2, - step, 0},
+	left = {2, -step, 0},
 	right = {3, step, 0},
-	up = {4, 0, - step}
+	up = {4, 0, -step}
 }
 
 local info = {}
@@ -90,7 +90,7 @@ function map:enter()
 			alpha = tonumber(alpha or 1)
 		}
 		for i = 1, tilecount do
-			local sx =(i - 1) % columns * info.tileWidth
+			local sx = (i - 1) % columns * info.tileWidth
 			local sy = math.floor((i - 1) / columns) * info.tileHeight
 			tileset[#tileset].quad[i] = love.graphics.newQuad(sx, sy, info.tileWidth, info.tileHeight,
 			tileset[#tileset].source:getDimensions())
@@ -106,11 +106,11 @@ function map:enter()
 		assert(status, "Failed to load layer data.")
 		table.insert(layer, {})
 		for line = 1, info.height do
-			layer[#layer] [line] = {}
+			layer[#layer][line] = {}
 			for col = 1, info.width do
 				local id = csv[(line - 1) * info.width + col]
 				if id == 0 then
-					layer[#layer] [line] [col] = nil
+					layer[#layer][line][col] = nil
 				else
 					local tile = #tileset
 					for i = 1, #tileset do
@@ -119,7 +119,7 @@ function map:enter()
 							break
 						end
 					end
-					layer[#layer] [line] [col] = {
+					layer[#layer][line][col] = {
 						tile = tile,
 						id = id - tileset[tile].first + 1
 					}
@@ -146,15 +146,15 @@ function map:enter()
 					source = #character.source
 				}
 				for i = 1, 4 do
-					character[k] [i] = {}
+					character[k][i] = {}
 					for c = 1, t.columns do
-						local sx =(v.col + c - 2) * t.width
-						local sy =(v.line + i - 2) * t.height
-						character[k] [i] [c] = love.graphics.newQuad(sx, sy, t.width, t.height,
+						local sx = (v.col + c - 2) * t.width
+						local sy = (v.line + i - 2) * t.height
+						character[k][i][c] = love.graphics.newQuad(sx, sy, t.width, t.height,
 						character.source[#character.source].source:getDimensions())
 					end
 					if t.columns == 3 then
-						character[k] [i] [4] = character[k] [i] [2]
+						character[k][i][4] = character[k][i][2]
 					end
 				end
 			end
@@ -162,32 +162,24 @@ function map:enter()
 	end
 	
 	-- init
-	-- 坐标编号: 从(0,0)到(29,19)
-	-- 总共有30x20个方块,地图中心是(14.5, 9.5)
-	-- 屏幕可以容纳25x18.75个方块.
 	local width, height = love.graphics.getDimensions()
 	width = width / info.tileWidth
 	height = height / info.tileHeight
 	if info.width <= width then
-		focusPos.x =(info.width - 1) / 2
+		focusPos.x = (info.width - 1) / 2
 	else
 		local half = width / 2
 		focusPos.x = utils.setRange(characterList[0].position.x, half, info.width - half - 1)
 	end
 	if info.height <= height then
-		focusPos.y =(info.height - 1) / 2
+		focusPos.y = (info.height - 1) / 2
 	else
 		local half = height / 2
 		focusPos.y = utils.setRange(characterList[0].position.y, half, info.height - half - 1)
 	end
-	print(focusPos.x, focusPos.y)
 	clock = 0
 end
--- 需求:
--- 1) 实现人物的行走(done)
--- 2) 确定当前的focusPos
---    规则: 朝某个方向移动后, 若进入到了距离窗口边界5格内, 且该方向地图边界尚未被绘制, 则focusPos向该方向同步移动.
---          除此以外的任何时点, focusPos不移动.
+
 function map:update()
 	if clock < 30 then
 		clock = clock + 1
@@ -219,7 +211,7 @@ function map:update()
 			
 			if os.clock() - lastFrame > 1 / frequency then	
 				characterList[0].status = characterList[0].status + 1
-				if characterList[0].status > #character[0] [1] then
+				if characterList[0].status > #character[0][1] then
 					characterList[0].status = 1
 				end
 				lastFrame = os.clock()
@@ -247,8 +239,8 @@ function map:draw()
 	for i = 1, #layer do
 		for line = lineLeft, lineRight do
 			for col = colLeft, colRight do
-				if layer[i] [math.floor(line) + 1] and layer[i] [math.floor(line) + 1] [math.floor(col) + 1] then
-					local cur = layer[i] [math.floor(line) + 1] [math.floor(col) + 1]
+				if layer[i][math.floor(line) + 1] and layer[i][math.floor(line) + 1][math.floor(col) + 1] then
+					local cur = layer[i][math.floor(line) + 1][math.floor(col) + 1]
 					love.graphics.draw(tileset[cur.tile].source, tileset[cur.tile].quad[cur.id],
 					(col - colLeft) * info.tileWidth,(line - lineLeft) * info.tileHeight)
 				end
@@ -257,7 +249,7 @@ function map:draw()
 		if i == 2 then
 			for k, v in pairs(characterList) do
 				love.graphics.draw(character.source[character[k].source].source,
-				character[k] [v.faceto] [v.status],
+				character[k][v.faceto][v.status],
 				(v.position.x - colLeft) * info.tileWidth,
 				(v.position.y - lineLeft + 1) * info.tileHeight - character.source[character[k].source].height)
 			end
