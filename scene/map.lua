@@ -8,27 +8,11 @@ local map = {}
 
 -- Map ID
 local currentMap = "000-debug"
-local focusPos = {
-	x = 0,
-	y = 0
-}
--- Character ID (todo: class data?)
-local characterList = {
-	[0] = {
-		position = {
-			x = 5,
-			y = 5
-		},
-		-- down, left, right, up
-		faceto = 1,
-		status = 2
-	}
-}
 
+-- define
 local speed = 2 -- blocks per second
 local frequency = 6 -- frames per second
 local step = speed / 60
-local scrollGap = 5
 
 local movement = {
 	down = {1, 0, step},
@@ -37,6 +21,21 @@ local movement = {
 	up = {4, 0, -step}
 }
 
+-- every object to draw
+local object = {
+  -- zero is character
+	[0] = {
+		id = 0,
+		position = {
+			x = 15,
+			y = 10
+		},
+		faceto = movement.down[1],
+		status = 2
+	}
+}
+
+-- storage
 local info = {}
 local tileset = {}
 local layer = {}
@@ -46,6 +45,7 @@ local character = {
 
 local clock = 0
 local lastFrame = 0
+local standTick = 0
 
 function map:enter()
 	-- load map
@@ -69,7 +69,7 @@ function map:enter()
 	while res:find(tilesetPt) do
 		local s = res:match(tilesetPt)
 		res = res:gsub(tilesetPt, "", 1)
-		local source = s:match([[source="%.%./tiles/(.-%.tsx)"]])
+		local source = s:match([[source=".-([^/]+%.tsx)"]])
 		local first = s:match([[firstgid="(%d+)"]])
 		local alpha = s:match([[opacity="([%d%.]+)"]])
 		assert(source and first, "Invaild tileset tag.")
@@ -105,10 +105,10 @@ function map:enter()
 		local status, csv = pcall(loadstring(string.format("return {%s}", layerData)))
 		assert(status, "Failed to load layer data.")
 		table.insert(layer, {})
-		for line = 1, info.height do
+		for line = 0, info.height - 1 do
 			layer[#layer][line] = {}
-			for col = 1, info.width do
-				local id = csv[(line - 1) * info.width + col]
+			for col = 0, info.width - 1 do
+				local id = csv[line * info.width + col + 1]
 				if id == 0 then
 					layer[#layer][line][col] = nil
 				else
@@ -160,23 +160,7 @@ function map:enter()
 			end
 		end
 	end
-	
 	-- init
-	local width, height = love.graphics.getDimensions()
-	width = width / info.tileWidth
-	height = height / info.tileHeight
-	if info.width <= width then
-		focusPos.x = (info.width - 1) / 2
-	else
-		local half = width / 2
-		focusPos.x = utils.setRange(characterList[0].position.x, half, info.width - half - 1)
-	end
-	if info.height <= height then
-		focusPos.y = (info.height - 1) / 2
-	else
-		local half = height / 2
-		focusPos.y = utils.setRange(characterList[0].position.y, half, info.height - half - 1)
-	end
 	clock = 0
 end
 
@@ -187,71 +171,77 @@ function map:update()
 	local moving = false
 	for k, v in pairs(movement) do
 		if love.keyboard.isDown(k) then
-			characterList[0].faceto = v[1]
-			
-			local width, height = love.graphics.getDimensions()
-			width = width / info.tileWidth
-			height = height / info.tileHeight
-			local halfWidth, halfHeight = width / 2, height / 2
-			local lineLeft, lineRight = focusPos.y - halfHeight, focusPos.y - halfHeight + height
-			local colLeft, colRight = focusPos.x - halfWidth, focusPos.x - halfWidth + width
-			
-			characterList[0].position.x = utils.setRange(characterList[0].position.x + v[2], 0, info.width - 1)
-			characterList[0].position.y = utils.setRange(characterList[0].position.y + v[3], 0, info.height - 1)
-			
-			if(characterList[0].position.x - colLeft) < scrollGap and(colLeft - step) >= 0 then
-				focusPos.x = focusPos.x - step
-			elseif(colRight - characterList[0].position.x) < scrollGap and(colRight + step) <= info.width then
-				focusPos.x = focusPos.x + step
-			elseif(characterList[0].position.y - lineLeft) < scrollGap and(lineLeft - step) >= 0 then
-				focusPos.y = focusPos.y - step
-			elseif(lineRight - characterList[0].position.y) < scrollGap and(lineRight + step) <= info.height then
-				focusPos.y = focusPos.y + step
-			end
-			
-			if os.clock() - lastFrame > 1 / frequency then	
-				characterList[0].status = characterList[0].status + 1
-				if characterList[0].status > #character[0][1] then
-					characterList[0].status = 1
+			object[0].faceto = v[1]
+      
+      local nx = utils.limit(object[0].position.x + v[2], 0, info.width - 1)
+      local ny = utils.limit(object[0].position.y + v[3], 0, info.height - 1)
+      
+      if layer[2] then
+        local fnx, fny = math.floor(nx), math.floor(ny)
+        if layer[2][fny] and layer[2][fny][fnx] then
+          nx = object[0].position.x
+          ny = object[0].position.y
+        end
+      end
+      
+      object[0].position = {
+        x = nx,
+        y = ny
+      }
+      
+			if love.timer.getTime() - lastFrame > 1 / frequency then	
+				object[0].status = object[0].status + 1
+				if object[0].status > #character[0][1] then
+					object[0].status = 1
 				end
-				lastFrame = os.clock()
+				lastFrame = love.timer.getTime()
 			end
 			
+      standTick = 0
 			moving = true
 			break
 		end
 	end
 	if not moving then
-		characterList[0].status = 2
+    standTick = standTick + 1
+    if standTick > 3 then
+      object[0].status = 2
+    end
 	end
 end
--- 需求:
--- 1) 以给定的focusPos为地图中心坐标, 将其对准窗口中心进行地图绘制.
--- 2) 使得focusPos可以为小数.
+
 function map:draw()
 	love.graphics.setColor(255, 255, 255, 255 / 30 * clock)
 	local width, height = love.graphics.getDimensions()
 	width = width / info.tileWidth
 	height = height / info.tileHeight
 	local halfWidth, halfHeight = width / 2, height / 2
-	local lineLeft, lineRight = focusPos.y - halfHeight, focusPos.y - halfHeight + height
-	local colLeft, colRight = focusPos.x - halfWidth, focusPos.x - halfWidth + width
+  local pos = {
+    x = info.width <= width and (info.width - 1) / 2 or 
+      utils.limit(object[0].position.x, halfWidth, info.width - halfWidth),
+    y = info.height <= height and (info.height - 1) / 2 or 
+      utils.limit(object[0].position.y, halfHeight, info.height - halfHeight)
+  }
+  
+	local colLeft, colRight = pos.x - halfWidth, pos.x + halfWidth
+	local lineLeft, lineRight = pos.y - halfHeight, pos.y + halfHeight
 	for i = 1, #layer do
-		for line = lineLeft, lineRight do
-			for col = colLeft, colRight do
-				if layer[i][math.floor(line) + 1] and layer[i][math.floor(line) + 1][math.floor(col) + 1] then
-					local cur = layer[i][math.floor(line) + 1][math.floor(col) + 1]
+		for line = lineLeft, lineRight + 1 do
+			for col = colLeft, colRight + 1 do
+				if layer[i][math.floor(line)] and layer[i][math.floor(line)][math.floor(col)] then
+					local cur = layer[i][math.floor(line)][math.floor(col)]
 					love.graphics.draw(tileset[cur.tile].source, tileset[cur.tile].quad[cur.id],
-					(col - colLeft) * info.tileWidth,(line - lineLeft) * info.tileHeight)
+            (col - colLeft - utils.tail(colLeft)) * info.tileWidth,
+            (line - lineLeft - utils.tail(lineLeft)) * info.tileHeight)
 				end
 			end
 		end
 		if i == 2 then
-			for k, v in pairs(characterList) do
+			for k, v in pairs(object) do
 				love.graphics.draw(character.source[character[k].source].source,
 				character[k][v.faceto][v.status],
-				(v.position.x - colLeft) * info.tileWidth,
-				(v.position.y - lineLeft + 1) * info.tileHeight - character.source[character[k].source].height)
+				(v.position.x - colLeft - 0.5) * info.tileWidth,
+				(v.position.y - lineLeft + 0.25) * info.tileHeight - character.source[character[k].source].height)
 			end
 		end
 	end
