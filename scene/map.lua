@@ -177,7 +177,7 @@ function map:update()
       local ny = utils.limit(object[0].position.y + v[3], 0, info.height - 1)
       
       if layer[2] then
-        local fnx, fny = math.floor(nx), math.floor(ny)
+        local fnx, fny = math.floor(nx), math.floor(ny + 0.25)
         if layer[2][fny] and layer[2][fny][fnx] then
           nx = object[0].position.x
           ny = object[0].position.y
@@ -239,9 +239,9 @@ function map:draw()
 		if i == 2 then
 			for k, v in pairs(object) do
 				love.graphics.draw(character.source[character[k].source].source,
-				character[k][v.faceto][v.status],
-				(v.position.x - colLeft - 0.5) * info.tileWidth,
-				(v.position.y - lineLeft + 0.25) * info.tileHeight - character.source[character[k].source].height)
+          character[k][v.faceto][v.status],
+          (v.position.x - colLeft - 0.5) * info.tileWidth,
+          (v.position.y - lineLeft + 0.25) * info.tileHeight - character.source[character[k].source].height)
 			end
 		end
 	end
