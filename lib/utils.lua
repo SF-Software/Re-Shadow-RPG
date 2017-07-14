@@ -33,7 +33,6 @@ function utils.drawList(list, percent, board)
 	return ret
 end
 
-
 --------------------------------------------
 -- inRange @ utils
 --------------------------------------------
@@ -48,14 +47,14 @@ function utils.inRange(var, left, right)
 end
 
 --------------------------------------------
--- setRange @ utils
+-- limit @ utils
 --------------------------------------------
 -- var: number
 -- left: number
 -- right: number
 -- ret: number
 --------------------------------------------
-function utils.setRange(var, left, right)
+function utils.limit(var, left, right)
 	assert(type(var) == "number" and type(left) == "number" and type(right) == "number")
 	if var < left then
 		return left
@@ -80,7 +79,14 @@ function utils.select(t, x, y, func)
 		end
 	end
 end
-function limit(v, min, max)
-	return math.min(math.max(v, max), min)
+
+--------------------------------------------
+-- tail @ utils
+--------------------------------------------
+-- n: number
+--------------------------------------------
+function utils.tail(n)
+  return math.abs(n) - math.floor(math.abs(n))
 end
+
 return utils 

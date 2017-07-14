@@ -1,4 +1,4 @@
-local tick = {framerate = nil, rate = 0.03, timescale = 1, sleep = 0.001, dt = 0, accum = 0, tick = 1, frame = 1}
+local tick = {framerate = 60, rate = 0.03, timescale = 1, sleep = 0.001, dt = 0, accum = 0, tick = 1, frame = 1}
 
 local timer = love.timer
 local graphics = love.graphics

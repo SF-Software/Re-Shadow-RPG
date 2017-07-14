@@ -1,4 +1,3 @@
-
 return function(ui, x, y, width, height, callback)
 	local window = setmetatable({draw_queue = {n = 0}}, {__index = ui})
 	if type(callback) == "function" then callback(window) end
