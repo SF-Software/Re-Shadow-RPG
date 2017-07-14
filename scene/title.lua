@@ -2,7 +2,7 @@
 -- title @ scene
 -- @ SF Software
 --------------------------------------------
-local scene_manager = require "lib.scene_manager"
+local scene_manager = require "base.scene_manager"
 local utils = require "lib.utils"
 local exitConfirm = require "scene.exitConfirm"
 local map = require "scene.map"

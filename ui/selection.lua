@@ -1,4 +1,4 @@
-local tick = require 'lib.tick'
+local tick = require 'base.tick'
 
 return function(ui, x, y, width, height, arg)
 	local items, item_width, item_height, row, col, cursor = arg.items, arg.item_width, arg.item_height, arg.rows, arg.columns, arg.cursor	

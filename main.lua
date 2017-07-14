@@ -2,12 +2,12 @@
 -- Re: Shadow RPG
 -- @ SF Software
 --------------------------------------------
-local tick = require "lib.tick"
-local scene_manager = require "lib.scene_manager"
+local tick = require "base.tick"
+local scene_manager = require "base.scene_manager"
 local utils = require "lib.utils"
 local title = require "scene.title"
 local ui = require 'ui'
-local registerEvents = require 'lib.register_events'
+local registerEvents = require 'base.register_events'
 
 --------------------------------------------
 -- load @ love
