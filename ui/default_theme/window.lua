@@ -25,8 +25,8 @@ local function drawborder(windowskin, src_start, dst_start, dst_end, vec)
 		love.graphics.draw(windowskin, pos_to_quad(src_start), dst_start:unpack())
 		dst_start = dst_start + sv
 		src_start = src_start + vec
-		if vec.x ~= 0 then src_start.x = limit(src_start.x, 1, 2) end
-		if vec.y ~= 0 then src_start.y = limit(src_start.y, 1, 2) end
+		if vec.x ~= 0 then src_start.x = utils.limit(src_start.x, 1, 2) end
+		if vec.y ~= 0 then src_start.y = utils.limit(src_start.y, 1, 2) end
 	until dst_end <= dst_start
 end
 local v00 = vec(0, 0)
