@@ -1,8 +1,28 @@
 
 local BASE =(...) .. "."
 local ui = {draw_queue = {n = 0}}
-
-
+do
+	local cx, cy = 0, 0
+	local stack = {{cx, cy}}
+	local o1 = love.graphics.push
+	local o2 = love.graphics.pop
+	function love.graphics.push(...)
+		table.insert(stack, {cx, cy})
+		o1(...)
+	end
+	function love.graphics.pop(...)		
+		cx, cy = unpack(table.remove(stack))
+		o2(...)
+	end
+	function love.graphics.translate_ex(x, y)
+		cx = cx + x
+		cy = cy + y
+		love.graphics.translate(x, y)
+	end
+	function love.graphics.setScissor_ex(x, y, w, h)
+		love.graphics.setScissor(x + cx, y + cy, w, h)
+	end
+end
 ui.clean = {}
 function ui.clean:update()	
 	ui.draw_queue.n = 0
@@ -24,10 +44,11 @@ function ui:registerDraw(callback, x, y, w, h)
 	self.draw_queue[self.draw_queue.n] = function()
 		love.graphics.push("all")
 		
+		
+		love.graphics.translate_ex(x, y)
 		if w and h then
-			love.graphics.setScissor(x, y, w, h)
+			love.graphics.setScissor_ex(0, 0, w, h)
 		end
-		love.graphics.translate(x, y)
 		callback()
 		love.graphics.pop()
 		

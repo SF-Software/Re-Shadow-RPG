@@ -7,6 +7,7 @@ local scene_manager = require "base.scene_manager"
 local utils = require "lib.utils"
 local title = require "scene.title"
 local ui = require 'ui'
+local input = require 'base.input'
 local registerEvents = require 'base.register_events'
 
 --------------------------------------------
@@ -18,7 +19,7 @@ function love.load()
 	NotoSansCJK_40 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 40)
 	NotoSansCJK_60 = love.graphics.newFont("resource/fonts/NotoSansCJKtc-Regular.otf", 60)
 	ui:init()
-	
+	registerEvents(input)
 	registerEvents(ui.clean)
 	registerEvents(scene_manager)
 	registerEvents(ui)
