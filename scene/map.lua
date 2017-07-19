@@ -13,6 +13,7 @@ local currentMap = "000-debug"
 local speed = 2 -- blocks per second
 local frequency = 6 -- frames per second
 local step = speed / 60
+local resetLimit = 10
 
 local movement = {
 	down = {1, 0, step},
@@ -23,7 +24,7 @@ local movement = {
 
 -- every object to draw
 local object = {
-  -- zero is character
+	-- zero is character
 	[0] = {
 		id = 0,
 		position = {
@@ -31,7 +32,24 @@ local object = {
 			y = 10
 		},
 		faceto = movement.down[1],
-		status = 2
+		status = 2,
+		block = true
+	},
+	[1] = {
+		id = 1,
+		position = {
+			x = 10,
+			y = 5
+		},
+		faceto = movement.down[1],
+		status = 2,
+		move = function (x, y)
+			return x, y
+		end,
+		talk = function ()
+			print("hello.")
+		end,
+		block = true
 	}
 }
 
@@ -131,6 +149,7 @@ function map:enter()
 	-- load characters
 	local index = love.filesystem.load("resource/characters/index.des")()
 	assert(index, "Character index not found.")
+	
 	for i = 1, #index do
 		local t = love.filesystem.load(string.format("resource/characters/%s", index[i]))()
 		assert(t, string.format("Character description <%s> not found.", index[i]))
@@ -172,23 +191,33 @@ function map:update()
 	for k, v in pairs(movement) do
 		if love.keyboard.isDown(k) then
 			object[0].faceto = v[1]
-      
-      local nx = utils.limit(object[0].position.x + v[2], 0, info.width - 1)
-      local ny = utils.limit(object[0].position.y + v[3], 0, info.height - 1)
-      
-      if layer[2] then
-        local fnx, fny = math.floor(nx), math.floor(ny + 0.25)
-        if layer[2][fny] and layer[2][fny][fnx] then
-          nx = object[0].position.x
-          ny = object[0].position.y
-        end
-      end
-      
-      object[0].position = {
-        x = nx,
-        y = ny
-      }
-      
+			
+			local nx = utils.limit(object[0].position.x + v[2], 0, info.width - 1)
+			local ny = utils.limit(object[0].position.y + v[3], 0, info.height - 1)
+			
+			if layer[2] then
+				local fnx, fny = math.floor(nx), math.floor(ny + 0.25)
+				if layer[2][fny] and layer[2][fny][fnx] then
+					nx = object[0].position.x
+					ny = object[0].position.y
+				end
+			end
+			
+			for i = 1, #object do
+				if object[i].block then
+					if utils.maxDistance({x = nx, y = ny}, object[i].position) < 0.5 then
+						nx = object[0].position.x
+						ny = object[0].position.y
+						break
+					end
+				end
+			end
+			
+			object[0].position = {
+				x = nx,
+				y = ny
+			}
+			
 			if love.timer.getTime() - lastFrame > 1 / frequency then	
 				object[0].status = object[0].status + 1
 				if object[0].status > #character[0][1] then
@@ -197,16 +226,16 @@ function map:update()
 				lastFrame = love.timer.getTime()
 			end
 			
-      standTick = 0
+			standTick = 0
 			moving = true
 			break
 		end
 	end
 	if not moving then
-    standTick = standTick + 1
-    if standTick > 3 then
-      object[0].status = 2
-    end
+		standTick = standTick + 1
+		if standTick > resetLimit then
+			object[0].status = 2
+		end
 	end
 end
 
@@ -216,13 +245,13 @@ function map:draw()
 	width = width / info.tileWidth
 	height = height / info.tileHeight
 	local halfWidth, halfHeight = width / 2, height / 2
-  local pos = {
-    x = info.width <= width and (info.width - 1) / 2 or 
-      utils.limit(object[0].position.x, halfWidth, info.width - halfWidth),
-    y = info.height <= height and (info.height - 1) / 2 or 
-      utils.limit(object[0].position.y, halfHeight, info.height - halfHeight)
-  }
-  
+	local pos = {
+		x = info.width <= width and (info.width - 1) / 2 or 
+			utils.limit(object[0].position.x, halfWidth, info.width - halfWidth),
+		y = info.height <= height and (info.height - 1) / 2 or 
+			utils.limit(object[0].position.y, halfHeight, info.height - halfHeight)
+	}
+	
 	local colLeft, colRight = pos.x - halfWidth, pos.x + halfWidth
 	local lineLeft, lineRight = pos.y - halfHeight, pos.y + halfHeight
 	for i = 1, #layer do
@@ -231,17 +260,26 @@ function map:draw()
 				if layer[i][math.floor(line)] and layer[i][math.floor(line)][math.floor(col)] then
 					local cur = layer[i][math.floor(line)][math.floor(col)]
 					love.graphics.draw(tileset[cur.tile].source, tileset[cur.tile].quad[cur.id],
-            (col - colLeft - utils.tail(colLeft)) * info.tileWidth,
-            (line - lineLeft - utils.tail(lineLeft)) * info.tileHeight)
+						(col - colLeft - utils.tail(colLeft)) * info.tileWidth,
+						(line - lineLeft - utils.tail(lineLeft)) * info.tileHeight)
 				end
 			end
 		end
 		if i == 2 then
-			for k, v in pairs(object) do
+			local order = {}
+			for k = 0, #object do
+				table.insert(order, k)
+			end
+			table.sort(order, function(a, b) 
+				return object[a].position.y < object[b].position.y
+			end)
+			for p = 1, #order do
+				local k = order[p]
+				local v = object[k]
 				love.graphics.draw(character.source[character[k].source].source,
-          character[k][v.faceto][v.status],
-          (v.position.x - colLeft - 0.5) * info.tileWidth,
-          (v.position.y - lineLeft + 0.25) * info.tileHeight - character.source[character[k].source].height)
+					character[k][v.faceto][v.status],
+					(v.position.x - colLeft - 0.5) * info.tileWidth,
+					(v.position.y - lineLeft + 0.25) * info.tileHeight - character.source[character[k].source].height)
 			end
 		end
 	end
@@ -252,7 +290,24 @@ function map:mousepressed(x, y, button, istouch)
 end
 
 function map:keypressed(key)
-	
+	if key == "escape" then
+		love.event.quit()
+	elseif key == "return" then
+		for k, v in pairs(movement) do
+			if v[1] == object[0].faceto then
+				for i = 1, #object do
+					local nx = object[0].position.x + v[2]
+					local ny = object[0].position.y + v[3]
+					if utils.maxDistance({x = nx, y = ny}, object[i].position) < 0.5 then
+						if object[i].talk then
+							object[i].talk()
+						end
+						break
+					end
+				end
+			end
+		end
+	end
 end
 
 return map 
