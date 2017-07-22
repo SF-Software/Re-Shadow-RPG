@@ -1,5 +1,5 @@
 local assets_manager = require('lib.assets_manager')
-
+local tick = require('base.tick')
 local selection = {
 	hori_space = 3,
 	vert_space = 0,
@@ -22,6 +22,12 @@ local function disabled(self, x, y, text, w)
 	love.graphics.print(text, x + 2, y)
 end
 local function draw_cursor(self, x, y, width, height, cursor)
+	local frame = tick.frame % 30
+	if frame >= 10 and frame < 20 then
+		love.graphics.setColor(255, 255, 255, 255 -(frame - 10) * 10)
+	elseif frame >= 20 and frame < 30 then
+		love.graphics.setColor(255, 255, 255, 155 +(frame - 20) * 10)
+	end
 	cursor.type = cursor.type or 1
 	if cursor.type == 1 then
 		love.graphics.draw(self.windowskin, cursor_quad, x, y, 0, width / 32, height / 32)

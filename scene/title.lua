@@ -4,6 +4,8 @@
 --------------------------------------------
 local scene_manager = require "base.scene_manager"
 local utils = require "lib.utils"
+local ui = require "ui"
+
 local exitConfirm = require "scene.exitConfirm"
 local map = require "scene.map"
 local ui_test = require 'scene.ui_test'
@@ -12,6 +14,7 @@ local title = {}
 local pos = {}
 local focus = 1
 local clock = 0
+local cursor = {index = 1}
 
 function title:enter()
 	titleImage = love.graphics.newImage("resource/images/title-origin.jpg")
@@ -29,6 +32,14 @@ function title:enter()
 end
 
 function title:update()
+	ui:selection(120, 480, 560, 90, {
+		items = {"Start", "UI Test", "Settings", "Exit"},
+		item_height = 30,
+		item_width = 140,
+		columns = 4,
+		rows = 1,
+		cursor = cursor
+	})
 	local x, y = love.mouse.getPosition()
 	if clock < 30 then
 		clock = clock + 1
