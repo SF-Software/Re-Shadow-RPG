@@ -2,16 +2,26 @@
 -- Scene Manager @ Re: Shadow RPG
 -- @ SF Software
 --------------------------------------------
-local M = setmetatable({}, {__index = function(self, func)
-	return function(...)
-		(self.current() [func] or __NULL__)(...)
-	end
-end})
-
 --------------------------------------------
 -- scene @ Scene Manager
 --------------------------------------------
 local scene = {}
+local cover = {}
+
+local M = setmetatable({}, {__index = function(self, func)
+	if func == "draw" then -- how about update?
+		return function(...)
+			(self.current()[func] or __NULL__)(...)
+			for i = 1, #cover do
+				(cover[i][func] or __NULL__)(...)
+			end
+		end
+	else
+		return function(...)
+			(self.top()[func] or __NULL__)(...)
+		end
+	end
+end})
 
 --------------------------------------------
 -- push @ Scene Manager
@@ -28,8 +38,12 @@ end
 -- pop @ Scene Manager
 --------------------------------------------
 function M:pop()
-	assert(#scene > 1, "Not able to pop.")
-	scene[#scene] = nil
+	assert((#scene + #cover) > 1, "Not able to pop.")
+	if cover[#cover] then
+		cover[#cover] = nil
+	else
+		scene[#scene] = nil
+	end
 end
 
 --------------------------------------------
@@ -44,12 +58,32 @@ function M:switch(state)
 end
 
 --------------------------------------------
+-- overlay @ Scene Manager
+--------------------------------------------
+-- state: table
+--------------------------------------------
+function M:overlay(state)
+	assert(type(state) == "table", "Not a table.")
+	cover[#cover + 1] = state
+	state.enter()
+end
+
+--------------------------------------------
 -- current @ Scene Manager
 --------------------------------------------
 -- ret: table
 --------------------------------------------
 function M:current()
 	return scene[#scene]
+end
+
+--------------------------------------------
+-- top @ Scene Manager
+--------------------------------------------
+-- ret: table
+--------------------------------------------
+function M:top()
+	return cover[#cover] or scene[#scene]
 end
 
 return M 
