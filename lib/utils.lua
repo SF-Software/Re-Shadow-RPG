@@ -89,4 +89,13 @@ function utils.tail(n)
   return math.abs(n) - math.floor(math.abs(n))
 end
 
+--------------------------------------------
+-- minDistance @ utils
+--------------------------------------------
+-- posA, posB: table(x, y)
+--------------------------------------------
+function utils.maxDistance(posA, posB)
+  return math.max(math.abs(posA.x - posB.x), math.abs(posA.y - posB.y))
+end
+
 return utils 
