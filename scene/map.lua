@@ -2,7 +2,9 @@
 -- map @ scene
 -- @ SF Software
 --------------------------------------------
+local scene_manager = require "base.scene_manager"
 local utils = require "lib.utils"
+local exitConfirm = require "scene.exitConfirm"
 
 local map = {}
 
@@ -21,6 +23,17 @@ local movement = {
 	right = {3, step, 0},
 	up = {4, 0, -step}
 }
+
+local function updateSpeed(spd)
+	speed = spd
+	step = speed / 60
+	movement = {
+		down = {1, 0, step},
+		left = {2, -step, 0},
+		right = {3, step, 0},
+		up = {4, 0, -step}
+	}
+end
 
 -- every object to draw
 local object = {
@@ -291,7 +304,7 @@ end
 
 function map:keypressed(key)
 	if key == "escape" then
-		love.event.quit()
+		scene_manager:overlay(exitConfirm)
 	elseif key == "return" then
 		for k, v in pairs(movement) do
 			if v[1] == object[0].faceto then
@@ -307,6 +320,14 @@ function map:keypressed(key)
 				end
 			end
 		end
+	elseif key == "lshift" then
+		updateSpeed(speed * 2)
+	end
+end
+
+function map:keyreleased(key)
+	if key == "lshift" then
+		updateSpeed(speed / 2)
 	end
 end
 

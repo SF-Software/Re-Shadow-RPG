@@ -55,20 +55,33 @@ function title:draw()
 	if focus and utils.inRange(focus, 1, #pos) then
 		love.graphics.line(pos[focus].x[1], pos[focus].y[2], pos[focus].x[2], pos[focus].y[2])
 	end
-	
+end
+
+local function process()
+	if focus == 1 then
+		return scene_manager:push(map)
+	elseif focus == 2 then
+		return scene_manager:push(ui_test)
+	elseif focus == 3 then
+	elseif focus == 4 then
+		return scene_manager:overlay(exitConfirm)
+	end
 end
 
 function title:mousepressed(x, y, button, istouch)
+	focus = utils.select(pos, x, y) or focus
 	if button == 1 then
-		local ret = utils.select(pos, x, y)
-		if ret == 1 then
-			return scene_manager:push(map)
-		elseif ret == 2 then
-			return scene_manager:push(ui_test)
-		elseif ret == 3 then
-		elseif ret == 4 then
-			return scene_manager:push(exitConfirm)
-		end
+		process()
+	end
+end
+
+function title:keypressed(key)
+	if key == "left" and focus > 1 then
+		focus = focus - 1
+	elseif key == "right" and focus < 4 then
+		focus = focus + 1
+	elseif key == "return" then
+		return process()
 	end
 end
 
